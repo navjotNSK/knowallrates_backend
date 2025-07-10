@@ -2,7 +2,7 @@
 builder = "DOCKERFILE"
 
 [deploy]
-startCommand = "java -jar target/gold-api-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod"
+startCommand = "java -jar target/knowallrates-0.0.1-SNAPSHOT.jar --spring.profiles.active=prod"
 healthcheckPath = "/api/rate/health"
 healthcheckTimeout = 300
 restartPolicyType = "ON_FAILURE"
