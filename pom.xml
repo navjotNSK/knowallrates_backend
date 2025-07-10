@@ -11,21 +11,9 @@
 	<groupId>com</groupId>
 	<artifactId>knowallrates</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>knowallrates</name>
-	<description>Spring Boot Backend for knowallrates application.</description>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
+	<name>gold-api</name>
+	<description>Gold Rates API for KnowAllRates</description>
+
 	<properties>
 		<java.version>17</java.version>
 	</properties>
