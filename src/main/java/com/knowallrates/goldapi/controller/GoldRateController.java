@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/rate")
-@CrossOrigin(origins = {"http://localhost:3000", "https://your-frontend-domain.com"})
+@CrossOrigin(origins = {"http://localhost:3000", "https://your-frontend-domain.com" , "https://know-all-rates.up.railway.app/"})
 public class GoldRateController {
 
     @Autowired
