@@ -9,4 +9,5 @@ FROM openjdk:17-jdk-slim
 WORKDIR /app
 COPY --from=builder /build/target/knowallrates-0.0.1-SNAPSHOT.jar app.jar
 EXPOSE 8080
+ENV JAVA_TOOL_OPTIONS="-Djdk.internal.platform.Metrics.enabled=false"
 ENTRYPOINT ["java", "-jar", "app.jar", "--spring.profiles.active=prod"]
