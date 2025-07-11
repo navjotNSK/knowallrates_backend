@@ -1,17 +1,17 @@
 -- Create users table
-CREATE TABLE IF NOT EXISTS users (
-    id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    full_name VARCHAR(255),
-    mobile_no VARCHAR(20),
-    date_of_birth VARCHAR(20),
-    address TEXT,
-    role VARCHAR(20) NOT NULL DEFAULT 'USER',
-    is_active BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-);
+--CREATE TABLE IF NOT EXISTS users (
+--    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+--    email VARCHAR(255) UNIQUE NOT NULL,
+--    password VARCHAR(255) NOT NULL,
+--    full_name VARCHAR(255),
+--    mobile_no VARCHAR(20),
+--    date_of_birth VARCHAR(20),
+--    address TEXT,
+--    role VARCHAR(20) NOT NULL DEFAULT 'USER',
+--    is_active BOOLEAN DEFAULT TRUE,
+--    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+--    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+--);
 
 -- Create assets table
 CREATE TABLE IF NOT EXISTS assets (
