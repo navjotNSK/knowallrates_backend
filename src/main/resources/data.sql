@@ -57,13 +57,13 @@ WHERE NOT EXISTS (
 
 
 -- Insert sample predictions (only if not exists)
-INSERT INTO gold_predictions (prediction_date, predicted_22k, predicted_24k, confidence, trend, created_at)
-SELECT prediction_date, predicted_22k, predicted_24k, confidence, trend, created_at
-FROM (
-    SELECT CURRENT_DATE + INTERVAL '1 day' as prediction_date, 6025.00 as predicted_22k, 6525.00 as predicted_24k, 85 as confidence, 'up' as trend, CURRENT_TIMESTAMP as created_at
-    UNION ALL
-    SELECT CURRENT_DATE + INTERVAL '2 days', 6050.00, 6550.00, 78, 'up', CURRENT_TIMESTAMP
-) AS tmp (prediction_date, predicted_22k, predicted_24k, confidence, trend, created_at)
-WHERE NOT EXISTS (
-    SELECT 1 FROM gold_predictions WHERE gold_predictions.prediction_date = tmp.prediction_date
-);
+--INSERT INTO gold_predictions (prediction_date, predicted_22k, predicted_24k, confidence, trend, created_at)
+--SELECT prediction_date, predicted_22k, predicted_24k, confidence, trend, created_at
+--FROM (
+--    SELECT CURRENT_DATE + INTERVAL '1 day' as prediction_date, 6025.00 as predicted_22k, 6525.00 as predicted_24k, 85 as confidence, 'up' as trend, CURRENT_TIMESTAMP as created_at
+--    UNION ALL
+--    SELECT CURRENT_DATE + INTERVAL '2 days', 6050.00, 6550.00, 78, 'up', CURRENT_TIMESTAMP
+--) AS tmp (prediction_date, predicted_22k, predicted_24k, confidence, trend, created_at)
+--WHERE NOT EXISTS (
+--    SELECT 1 FROM gold_predictions WHERE gold_predictions.prediction_date = tmp.prediction_date
+--);
