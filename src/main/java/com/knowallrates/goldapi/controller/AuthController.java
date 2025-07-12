@@ -1,15 +1,15 @@
 package com.knowallrates.goldapi.controller;
 
-import com.knowallrates.goldapi.dto.AuthRequest;
-import com.knowallrates.goldapi.dto.AuthResponse;
-import com.knowallrates.goldapi.dto.SignUpRequest;
-import com.knowallrates.goldapi.dto.UpdateProfileRequest;
+import com.knowallrates.goldapi.dto.*;
+import com.knowallrates.goldapi.service.PasswordResetService;
 import com.knowallrates.goldapi.service.UserService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -18,6 +18,10 @@ public class AuthController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private PasswordResetService passwordResetService;
+
 
     @PostMapping("/signup")
     @CrossOrigin(origins = "*")
@@ -145,4 +149,63 @@ public class AuthController {
                 .header("Access-Control-Max-Age", "3600")
                 .build();
     }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        try {
+            System.out.println("POST /api/auth/forgot-password - Request received for: " + request.getEmail());
+            String message = passwordResetService.initiatePasswordReset(request.getEmail());
+            System.out.println("POST /api/auth/forgot-password - Response: " + message);
+
+            return ResponseEntity.ok()
+                    .header("Access-Control-Allow-Origin", "*")
+                    .body(Map.of("message", message));
+        } catch (Exception e) {
+            System.err.println("Error in forgotPassword: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest()
+                    .header("Access-Control-Allow-Origin", "*")
+                    .body(Map.of("message", "Failed to process password reset request"));
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        try {
+            System.out.println("POST /api/auth/reset-password - Request received with token: " +
+                    request.getToken().substring(0, 10) + "...");
+            String message = passwordResetService.resetPassword(request.getToken(), request.getNewPassword());
+            System.out.println("POST /api/auth/reset-password - Success: " + message);
+
+            return ResponseEntity.ok()
+                    .header("Access-Control-Allow-Origin", "*")
+                    .body(Map.of("message", message));
+        } catch (Exception e) {
+            System.err.println("Error in resetPassword: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest()
+                    .header("Access-Control-Allow-Origin", "*")
+                    .body(Map.of("message", e.getMessage()));
+        }
+    }
+
+    @GetMapping("/verify-reset-token/{token}")
+    public ResponseEntity<Map<String, Object>> verifyResetToken(@PathVariable String token) {
+        try {
+            System.out.println("GET /api/auth/verify-reset-token - Verifying token: " + token.substring(0, 10) + "...");
+            boolean isValid = passwordResetService.verifyResetToken(token);
+            System.out.println("GET /api/auth/verify-reset-token - Token valid: " + isValid);
+
+            return ResponseEntity.ok()
+                    .header("Access-Control-Allow-Origin", "*")
+                    .body(Map.of("valid", isValid));
+        } catch (Exception e) {
+            System.err.println("Error in verifyResetToken: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest()
+                    .header("Access-Control-Allow-Origin", "*")
+                    .body(Map.of("valid", false, "message", e.getMessage()));
+        }
+    }
+
 }
