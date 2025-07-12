@@ -46,10 +46,10 @@ public class SecurityConfig {
                 .cors(cors -> cors.configure(http))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/api/auth/signin", "/api/auth/signup", "/api/rate/**", "/api/health").permitAll()
+                        .requestMatchers("/api/auth/signin", "/api/auth/signup", "/api/rate/**", "/api/health", "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/verify-reset-token/**").permitAll()
                         .requestMatchers("/health", "/", "/api/rate/health", "/h2-console/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-//                        .requestMatchers("/api/auth/profile").authenticated()
+                        .requestMatchers("/api/auth/profile").authenticated()
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions().disable()) // For H2 console
