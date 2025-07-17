@@ -49,7 +49,7 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/signin", "/api/auth/signup", "/api/rate/**", "/api/health", "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/verify-reset-token/**").permitAll()
                         .requestMatchers("/health", "/", "/api/rate/health", "/h2-console/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/auth/profile").authenticated()
+                        .requestMatchers("/api/auth/profile","/api/shop/cart/**","/api/orders").authenticated()
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions().disable()) // For H2 console

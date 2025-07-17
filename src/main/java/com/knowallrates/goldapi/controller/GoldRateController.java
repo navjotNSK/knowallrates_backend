@@ -3,7 +3,9 @@ package com.knowallrates.goldapi.controller;
 import com.knowallrates.goldapi.dto.HistoryResponse;
 import com.knowallrates.goldapi.dto.PredictionResponse;
 import com.knowallrates.goldapi.dto.TodayRateResponse;
+import com.knowallrates.goldapi.dto.AllRatesResponse;
 import com.knowallrates.goldapi.service.GoldRateService;
+import com.knowallrates.goldapi.service.AssetRateService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,12 +18,15 @@ public class GoldRateController {
     @Autowired
     private GoldRateService goldRateService;
 
+    @Autowired
+    private AssetRateService assetRateService;
+
     @GetMapping("/today")
     @CrossOrigin(origins = "*")
-    public ResponseEntity<TodayRateResponse> getTodayRates() {
+    public ResponseEntity<AllRatesResponse> getTodayRates() {
         try {
             System.out.println("GET /api/rate/today - Request received");
-            TodayRateResponse response = goldRateService.getTodayRates();
+            AllRatesResponse response = assetRateService.getAllTodayRates();
             System.out.println("GET /api/rate/today - Response: " + response);
             return ResponseEntity.ok()
                     .header("Access-Control-Allow-Origin", "*")
