@@ -5,7 +5,6 @@ import com.knowallrates.goldapi.model.Cart;
 import com.knowallrates.goldapi.model.CartItem;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class CartResponse {
     private Long id;
@@ -41,7 +40,7 @@ public class CartResponse {
             this.productImage = item.getProduct().getImageUrl();
             this.category = item.getProduct().getCategory();
             this.purity = item.getProduct().getPurity();
-            this.weightInGrams = item.getProduct().getWeightInGrams();
+            this.weightInGrams = item.getProduct().getWeight();
             this.quantity = item.getQuantity();
             this.unitPrice = item.getUnitPrice();
             this.totalPrice = item.getTotalPrice();

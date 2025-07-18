@@ -1,5 +1,6 @@
 package com.knowallrates.goldapi.dto;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotBlank;
 
 public class OrderRequest {
@@ -11,6 +12,7 @@ public class OrderRequest {
     @NotBlank(message = "Payment method is required")
     private String paymentMethod;
 
+    @JsonProperty("discountPrice")
     private String orderNotes;
 
     // Constructors

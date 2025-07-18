@@ -2,6 +2,7 @@ package com.knowallrates.goldapi.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -36,18 +37,18 @@ public class Product {
     private Integer stockQuantity = 0;
 
     @Column(name = "weight_in_grams")
-    private Double weightInGrams;
+    private Double weight;
 
     @Column(name = "purity") // 22K, 24K, 999, etc.
     private String purity;
 
-    @Column(name = "image_url")
+    @Column(name = "image_url") // Stores path to main image
     private String imageUrl;
 
-    @ElementCollection
+    @ElementCollection(fetch = FetchType.EAGER) // Eagerly fetch additional images
     @CollectionTable(name = "product_images", joinColumns = @JoinColumn(name = "product_id"))
     @Column(name = "image_url")
-    private List<String> additionalImages;
+    private List<String> additionalImages; // Stores paths to additional images
 
     @Column(name = "is_active")
     private Boolean isActive = true;
@@ -67,14 +68,14 @@ public class Product {
     // Constructors
     public Product() {}
 
-    public Product(String name, String description, Asset asset, Double basePrice, 
-                   Double weightInGrams, String purity, String category) {
+    public Product(String name, String description, Asset asset, Double basePrice,
+                   Double weight, String purity, String category) {
         this.name = name;
         this.description = description;
         this.asset = asset;
         this.basePrice = basePrice;
         this.finalPrice = basePrice;
-        this.weightInGrams = weightInGrams;
+        this.weight = weight;
         this.purity = purity;
         this.category = category;
         this.createdAt = LocalDateTime.now();
@@ -95,13 +96,13 @@ public class Product {
     public void setAsset(Asset asset) { this.asset = asset; }
 
     public Double getBasePrice() { return basePrice; }
-    public void setBasePrice(Double basePrice) { 
+    public void setBasePrice(Double basePrice) {
         this.basePrice = basePrice;
         calculateFinalPrice();
     }
 
     public Double getDiscountPercentage() { return discountPercentage; }
-    public void setDiscountPercentage(Double discountPercentage) { 
+    public void setDiscountPercentage(Double discountPercentage) {
         this.discountPercentage = discountPercentage;
         calculateFinalPrice();
     }
@@ -112,8 +113,8 @@ public class Product {
     public Integer getStockQuantity() { return stockQuantity; }
     public void setStockQuantity(Integer stockQuantity) { this.stockQuantity = stockQuantity; }
 
-    public Double getWeightInGrams() { return weightInGrams; }
-    public void setWeightInGrams(Double weightInGrams) { this.weightInGrams = weightInGrams; }
+    public Double getWeight() { return weight; }
+    public void setWeight(Double weight) { this.weight = weight; }
 
     public String getPurity() { return purity; }
     public void setPurity(String purity) { this.purity = purity; }
@@ -155,6 +156,10 @@ public class Product {
     private void calculateFinalPrice() {
         if (basePrice != null && discountPercentage != null) {
             this.finalPrice = basePrice - (basePrice * discountPercentage / 100);
+        } else if (basePrice != null) {
+            this.finalPrice = basePrice;
+        } else {
+            this.finalPrice = 0.0; // Default or handle error
         }
     }
 }

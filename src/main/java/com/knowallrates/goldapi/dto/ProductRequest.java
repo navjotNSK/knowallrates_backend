@@ -19,7 +19,7 @@ public class ProductRequest {
 
     @NotNull(message = "Base price is required")
     @Positive(message = "Base price must be positive")
-    private Double price;
+    private Double price; // This is basePrice from frontend
 
     @PositiveOrZero(message = "Discount percentage must be non-negative")
     private Double discountPercentage = 0.0;
@@ -27,19 +27,19 @@ public class ProductRequest {
     @PositiveOrZero(message = "Stock quantity must be non-negative")
     private Integer stockQuantity = 0;
 
-    @Positive(message = "Weight must be positive")
-    private Double weight;
+    // Changed to String to match frontend input, will be parsed in service
+    private String weight;
 
     private String purity;
-
-    private String imageUrl;
-
-    private List<String> additionalImages;
 
     private Boolean isActive = false;
 
     @NotBlank(message = "Category is required")
     private String category;
+
+    // Existing image URLs to retain if no new files are uploaded
+    private String imageUrl; // Path to existing main image
+    private java.util.List<String> additionalImages; // Paths to existing additional images
 
     // Constructors
     public ProductRequest() {}
@@ -63,21 +63,21 @@ public class ProductRequest {
     public Integer getStockQuantity() { return stockQuantity; }
     public void setStockQuantity(Integer stockQuantity) { this.stockQuantity = stockQuantity; }
 
-    public Double getWeight() { return weight; }
-    public void setWeight(Double weight) { this.weight = weight; }
+    public String getWeight() { return weight; }
+    public void setWeight(String weight) { this.weight = weight; }
 
     public String getPurity() { return purity; }
     public void setPurity(String purity) { this.purity = purity; }
-
-    public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
-
-    public List<String> getAdditionalImages() { return additionalImages; }
-    public void setAdditionalImages(List<String> additionalImages) { this.additionalImages = additionalImages; }
 
     public Boolean getIsActive() { return isActive; }
     public void setIsActive(Boolean isActive) { this.isActive = isActive; }
 
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
+
+    public String getImageUrl() { return imageUrl; }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
+
+    public java.util.List<String> getAdditionalImages() { return additionalImages; }
+    public void setAdditionalImages(java.util.List<String> additionalImages) { this.additionalImages = additionalImages; }
 }

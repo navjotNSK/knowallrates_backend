@@ -1,6 +1,7 @@
 package com.knowallrates.goldapi.controller;
 
 import com.knowallrates.goldapi.dto.OrderRequest;
+import com.knowallrates.goldapi.dto.OrderResponse;
 import com.knowallrates.goldapi.model.Order;
 import com.knowallrates.goldapi.service.OrderService;
 import jakarta.validation.Valid;
@@ -18,7 +19,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api/orders")
+@RequestMapping("/api/shop/orders")
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class OrderController {
 
@@ -27,7 +28,7 @@ public class OrderController {
 
     @PostMapping
     @CrossOrigin(origins = "*")
-    public ResponseEntity<Order> createOrder(
+    public ResponseEntity<OrderResponse> createOrder(
             @Valid @RequestBody OrderRequest request,
             Authentication authentication) {
         try {
@@ -35,7 +36,7 @@ public class OrderController {
                 return ResponseEntity.status(401).build();
             }
 
-            Order order = orderService.createOrder(authentication.getName(), request);
+            OrderResponse order = orderService.createOrder(authentication.getName(), request);
             return ResponseEntity.ok()
                     .header("Access-Control-Allow-Origin", "*")
                     .body(order);
@@ -47,7 +48,7 @@ public class OrderController {
 
     @GetMapping
     @CrossOrigin(origins = "*")
-    public ResponseEntity<Page<Order>> getUserOrders(
+    public ResponseEntity<Page<OrderResponse>> getUserOrders(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             Authentication authentication) {
@@ -57,7 +58,7 @@ public class OrderController {
             }
 
             Pageable pageable = PageRequest.of(page, size);
-            Page<Order> orders = orderService.getUserOrdersPaginated(authentication.getName(), pageable);
+            Page<OrderResponse> orders = orderService.getUserOrdersPaginated(authentication.getName(), pageable);
             return ResponseEntity.ok()
                     .header("Access-Control-Allow-Origin", "*")
                     .body(orders);
@@ -69,7 +70,7 @@ public class OrderController {
 
     @GetMapping("/{orderId}")
     @CrossOrigin(origins = "*")
-    public ResponseEntity<Order> getOrder(
+    public ResponseEntity<OrderResponse> getOrder(
             @PathVariable String orderId,
             Authentication authentication) {
         try {
@@ -77,7 +78,7 @@ public class OrderController {
                 return ResponseEntity.status(401).build();
             }
 
-            Optional<Order> order = orderService.getUserOrder(authentication.getName(), orderId);
+            Optional<OrderResponse> order = orderService.getUserOrder(authentication.getName(), orderId);
             if (order.isPresent()) {
                 return ResponseEntity.ok()
                         .header("Access-Control-Allow-Origin", "*")
@@ -119,11 +120,11 @@ public class OrderController {
     @PutMapping("/{orderId}/status")
     @PreAuthorize("hasRole('ADMIN')")
     @CrossOrigin(origins = "*")
-    public ResponseEntity<Order> updateOrderStatus(
+    public ResponseEntity<OrderResponse> updateOrderStatus(
             @PathVariable String orderId,
             @RequestParam Order.OrderStatus status) {
         try {
-            Order order = orderService.updateOrderStatus(orderId, status);
+            OrderResponse order = orderService.updateOrderStatus(orderId, status);
             return ResponseEntity.ok()
                     .header("Access-Control-Allow-Origin", "*")
                     .body(order);
@@ -135,12 +136,12 @@ public class OrderController {
 
     @PutMapping("/{orderId}/payment")
     @CrossOrigin(origins = "*")
-    public ResponseEntity<Order> updatePaymentStatus(
+    public ResponseEntity<OrderResponse> updatePaymentStatus(
             @PathVariable String orderId,
             @RequestParam Order.PaymentStatus paymentStatus,
             @RequestParam(required = false) String transactionId) {
         try {
-            Order order = orderService.updatePaymentStatus(orderId, paymentStatus, transactionId);
+            OrderResponse order = orderService.updatePaymentStatus(orderId, paymentStatus, transactionId);
             return ResponseEntity.ok()
                     .header("Access-Control-Allow-Origin", "*")
                     .body(order);

@@ -175,6 +175,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 path.startsWith("/api/auth/reset-password") ||
                 path.startsWith("/api/auth/verify-reset-token") ||
                 path.startsWith("/api/auth/signup") ||
+                path.startsWith("/api/uploads/products/")  ||
                 path.equals("/health") ||
                 path.equals("/") ||
                 path.startsWith("/h2-console");

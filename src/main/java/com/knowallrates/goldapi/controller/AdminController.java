@@ -1,5 +1,6 @@
 package com.knowallrates.goldapi.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.knowallrates.goldapi.dto.ProductRequest;
 import com.knowallrates.goldapi.dto.ProductResponse;
 import com.knowallrates.goldapi.dto.UpdateRateRequest;
@@ -10,11 +11,15 @@ import com.knowallrates.goldapi.service.AdminService;
 import com.knowallrates.goldapi.service.ProductService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
@@ -28,6 +33,8 @@ public class AdminController {
     @Autowired
     private ProductService productService;
 
+    @Autowired
+    private ObjectMapper objectMapper; // For deserializing JSON part of multipart request
 
     @GetMapping("/assets")
     @PreAuthorize("hasRole('ADMIN')")
@@ -91,20 +98,84 @@ public class AdminController {
                 .build();
     }
 
-    @PostMapping("/products")
+    @PostMapping(value = "/products", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('ADMIN')")
     @CrossOrigin(origins = "*")
-    public ResponseEntity<Product> createProduct(@Valid @RequestBody ProductRequest request) {
+    public ResponseEntity<ProductResponse> createProduct(
+            @RequestPart("product") String productJson,
+            @RequestPart(value = "mainImage", required = false) MultipartFile mainImage,
+            @RequestPart(value = "additionalImages", required = false) List<MultipartFile> additionalImages) {
         try {
-            Product product = productService.createProduct(request);
+            ProductRequest request = objectMapper.readValue(productJson, ProductRequest.class);
+            Product product = productService.createProduct(request, mainImage, additionalImages);
             return ResponseEntity.ok()
                     .header("Access-Control-Allow-Origin", "*")
                     .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
                     .header("Access-Control-Allow-Headers", "*")
-                    .body(product);
+                    .body(convertToProductResponse(product));
         } catch (Exception e) {
             System.err.println("Error in createProduct: " + e.getMessage());
-            return ResponseEntity.badRequest().build();
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @PutMapping(value = "/products/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('ADMIN')")
+    @CrossOrigin(origins = "*")
+    public ResponseEntity<ProductResponse> updateProduct(
+            @PathVariable Long id,
+            @RequestPart("product") String productJson,
+            @RequestPart(value = "mainImage", required = false) MultipartFile mainImage,
+            @RequestPart(value = "additionalImages", required = false) List<MultipartFile> additionalImages) {
+        try {
+            ProductRequest request = objectMapper.readValue(productJson, ProductRequest.class);
+            Product product = productService.updateProduct(id, request, mainImage, additionalImages);
+            return ResponseEntity.ok()
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+                    .header("Access-Control-Allow-Headers", "*")
+                    .body(convertToProductResponse(product));
+        } catch (Exception e) {
+            System.err.println("Error in updateProduct: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
+        }
+    }
+
+    @DeleteMapping("/products/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @CrossOrigin(origins = "*")
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        try {
+            productService.deleteProduct(id);
+            return ResponseEntity.noContent()
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+                    .header("Access-Control-Allow-Headers", "*")
+                    .build();
+        } catch (Exception e) {
+            System.err.println("Error in deleteProduct: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PatchMapping("/products/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    @CrossOrigin(origins = "*")
+    public ResponseEntity<ProductResponse> toggleProductStatus(@PathVariable Long id, @RequestBody Boolean isActive) {
+        try {
+            Product product = productService.toggleProductStatus(id, isActive);
+            return ResponseEntity.ok()
+                    .header("Access-Control-Allow-Origin", "*")
+                    .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+                    .header("Access-Control-Allow-Headers", "*")
+                    .body(convertToProductResponse(product));
+        } catch (Exception e) {
+            System.err.println("Error in toggleProductStatus: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).build();
         }
     }
 
@@ -113,28 +184,11 @@ public class AdminController {
     @CrossOrigin(origins = "*")
     public ResponseEntity<List<ProductResponse>> getAllProductsForAdmin() {
         try {
-            List<Product> products = productService.getAllActiveProducts();
+            List<Product> products = productService.getAllProducts(); // Changed to getAllProducts to include inactive ones for admin view
 
-            List<ProductResponse> response = products.stream().map(product -> {
-                ProductResponse dto = new ProductResponse();
-                dto.setId(product.getId());
-                dto.setName(product.getName());
-                dto.setDescription(product.getDescription());
-                dto.setAssetName(product.getAsset() != null ? product.getAsset().getDisplayName() : null);
-                dto.setBasePrice(product.getBasePrice());
-                dto.setDiscountPercentage(product.getDiscountPercentage());
-                dto.setPrice(product.getFinalPrice());
-                dto.setStockQuantity(product.getStockQuantity());
-                dto.setWeight(product.getWeightInGrams());
-                dto.setPurity(product.getPurity());
-                dto.setImageUrl(product.getImageUrl());
-                dto.setAdditionalImages(product.getAdditionalImages());
-                dto.setActive(product.getIsActive());
-                dto.setCategory(product.getCategory());
-                dto.setCreatedAt(product.getCreatedAt());
-                dto.setUpdatedAt(product.getUpdatedAt());
-                return dto;
-            }).collect(Collectors.toList());
+            List<ProductResponse> response = products.stream()
+                    .map(this::convertToProductResponse)
+                    .collect(Collectors.toList());
 
             return ResponseEntity.ok()
                     .header("Access-Control-Allow-Origin", "*")
@@ -148,107 +202,57 @@ public class AdminController {
         }
     }
 
+    private ProductResponse convertToProductResponse(Product product) {
+        ProductResponse dto = new ProductResponse();
+        dto.setId(product.getId());
+        dto.setName(product.getName());
+        dto.setDescription(product.getDescription());
+        dto.setAssetName(product.getAsset() != null ? product.getAsset().getDisplayName() : null);
+        dto.setBasePrice(product.getBasePrice());
+        dto.setDiscountPercentage(product.getDiscountPercentage());
+        dto.setPrice(product.getFinalPrice());
+        dto.setStockQuantity(product.getStockQuantity());
+        dto.setWeight(product.getWeight());
+        dto.setPurity(product.getPurity());
+        dto.setImageUrl(product.getImageUrl());
+        dto.setAdditionalImages(product.getAdditionalImages());
+        dto.setActive(product.getIsActive());
+        dto.setCategory(product.getCategory());
+        dto.setCreatedAt(product.getCreatedAt());
+        dto.setUpdatedAt(product.getUpdatedAt());
+        return dto;
+    }
 
-//    @GetMapping("/products")
-//    @PreAuthorize("hasRole('ADMIN')")
-//    @CrossOrigin(origins = "*")
-//    public ResponseEntity<List<ProductResponse>> getAllProductsForAdmin() {
-//        try {
-//            List<Product> products = productService.getAllActiveProducts();
-//
-//            List<ProductResponse> response = new ArrayList<>();
-//            for(Product p: products){
-//            response.add(ProductResponse.builder()
-//                    .id(p.getId())
-//                    .name(p.getName())
-//                    .description(p.getDescription())
-//                    .assetName(p.getAsset().getDisplayName())
-//                    .basePrice(p.getBasePrice())
-//                    .discountPercentage(p.getDiscountPercentage())
-//                    .finalPrice(p.getFinalPrice())
-//                    .stockQuantity(p.getStockQuantity())
-//                    .weightInGrams(p.getWeightInGrams())
-//                    .purity(p.getPurity())
-//                    .imageUrl(p.getImageUrl())
-//                    .additionalImages(p.getAdditionalImages())
-//                    .isActive(p.getIsActive())
-//                    .isFeatured(p.getIsFeatured())
-//                    .category(p.getCategory())
-//                    .createdAt(p.getCreatedAt())
-//                    .updatedAt(p.getUpdatedAt())
-//                    .build());
-//            }
-////
-////
-////                    products.stream()
-////                    .map(product -> ProductResponse.builder()
-////                            .id(product.getId())
-////                            .name(product.getName())
-////                            .description(product.getDescription())
-////                            .assetName(product.getAsset().getDisplayName())
-////                            .basePrice(product.getBasePrice())
-////                            .discountPercentage(product.getDiscountPercentage())
-////                            .finalPrice(product.getFinalPrice())
-////                            .stockQuantity(product.getStockQuantity())
-////                            .weightInGrams(product.getWeightInGrams())
-////                            .purity(product.getPurity())
-////                            .imageUrl(product.getImageUrl())
-////                            .additionalImages(product.getAdditionalImages())
-////                            .isActive(product.getIsActive())
-////                            .isFeatured(product.getIsFeatured())
-////                            .category(product.getCategory())
-////                            .createdAt(product.getCreatedAt())
-////                            .updatedAt(product.getUpdatedAt())
-////                            .build())
-////                    .toList(); // ✅ Use toList() instead of collect(Collectors.toList())
-//
-//            return ResponseEntity.ok()
-//                    .header("Access-Control-Allow-Origin", "*")
-//                    .header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-//                    .header("Access-Control-Allow-Headers", "*")
-//                    .body(response);
-//
-//        } catch (Exception e) {
-//            System.err.println("Error in getAllProductsForAdmin: " + e.getMessage());
-//            return ResponseEntity.internalServerError().build();
-//        }
-//    }
+    @GetMapping("/{id}")
+    @CrossOrigin(origins = "*")
+    public ResponseEntity<Product> getProduct(@PathVariable Long id) {
+        try {
+            Optional<Product> product = productService.getProductById(id);
+            if (product.isPresent()) {
+                return ResponseEntity.ok()
+                        .header("Access-Control-Allow-Origin", "*")
+                        .body(product.get());
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            System.err.println("Error in getProduct: " + e.getMessage());
+            return ResponseEntity.internalServerError().build();
+        }
+    }
 
-
-//
-//    @GetMapping("/products")
-//    @CrossOrigin(origins = "*")
-//    public ResponseEntity<Page<Product>> getProducts(
-//            @RequestParam(defaultValue = "0") int page,
-//            @RequestParam(defaultValue = "12") int size,
-//            @RequestParam(defaultValue = "createdAt") String sortBy,
-//            @RequestParam(defaultValue = "desc") String sortDir,
-//            @RequestParam(required = false) String asset,
-//            @RequestParam(required = false) String category,
-//            @RequestParam(required = false) String search) {
-//        try {
-//            Sort sort = sortDir.equalsIgnoreCase("desc") ?
-//                    Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-//            Pageable pageable = PageRequest.of(page, size, sort);
-//
-//            Page<Product> products;
-//            if (search != null && !search.trim().isEmpty()) {
-//                products = productService.searchProducts(search, pageable);
-//            } else if (asset != null && !asset.trim().isEmpty()) {
-//                products = productService.getProductsByAsset(asset, pageable);
-//            } else if (category != null && !category.trim().isEmpty()) {
-//                products = productService.getProductsByCategory(category, pageable);
-//            } else {
-//                products = productService.searchProducts("", pageable);
-//            }
-//
-//            return ResponseEntity.ok()
-//                    .header("Access-Control-Allow-Origin", "*")
-//                    .body(products);
-//        } catch (Exception e) {
-//            System.err.println("Error in getProducts: " + e.getMessage());
-//            return ResponseEntity.internalServerError().build();
-//        }
-//    }
-
+    @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
+    @CrossOrigin(origins = "*")
+    public ResponseEntity<Product> updateProduct(@PathVariable Long id, @Valid @RequestBody ProductRequest request) {
+        try {
+            Product product = productService.updateProduct(id, request, null, null);
+            return ResponseEntity.ok()
+                    .header("Access-Control-Allow-Origin", "*")
+                    .body(product);
+        } catch (Exception e) {
+            System.err.println("Error in updateProduct: " + e.getMessage());
+            return ResponseEntity.badRequest().build();
+        }
+    }
 }
