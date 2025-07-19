@@ -47,9 +47,9 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/signin", "/api/auth/signup", "/api/rate/**", "/api/health", "/api/auth/forgot-password", "/api/auth/reset-password", "/api/auth/verify-reset-token/**").permitAll()
-                        .requestMatchers("/health", "/", "/api/rate/health", "/h2-console/**").permitAll()
+                        .requestMatchers("/health", "/", "/api/rate/health", "/h2-console/**","/api/uploads/products/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/api/auth/profile").authenticated()
+                        .requestMatchers("/api/auth/profile","/api/shop/cart/**","/api/orders","/api/shop/orders/**","/api/shop").authenticated()
                         .anyRequest().authenticated()
                 )
                 .headers(headers -> headers.frameOptions().disable()) // For H2 console

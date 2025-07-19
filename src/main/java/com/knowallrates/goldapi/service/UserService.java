@@ -112,4 +112,14 @@ public class UserService {
             System.out.println("Default admin user created: admin@knowallrates.com / admin123");
         }
     }
+
+    public User findByEmail(String email) {
+        Optional<User> userOpt = userRepository.findByEmailAndIsActive(email, true);
+
+        if (userOpt.isEmpty()) {
+            throw new RuntimeException("User not found with email: " + email);
+        }
+
+        return userOpt.get();
+    }
 }
